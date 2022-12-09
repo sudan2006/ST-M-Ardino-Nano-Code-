@@ -1,0 +1,833 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
+import 'package:pie_chart/pie_chart.dart';
+import 'package:solarmonitoringandtracking/Screens/Login.dart';
+import 'package:solarmonitoringandtracking/auth_service.dart';
+
+
+
+class Home extends StatefulWidget {
+  Home({Key? key, String this.Email = ""}) : super(key: key);
+
+  String Email;
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  late DatabaseReference? reference;
+  dynamic p1 = 0;
+  dynamic p2 = 0;
+  dynamic p3 = 0;
+  dynamic li = 0;
+  dynamic temp = 0;
+  double p11 = 0;
+  double p22 = 0;
+  double p33 = 0;
+  double _li = 0;
+
+  @override
+  void initState() {
+    loadPower();
+    super.initState();
+  }
+
+  void loadPower() async {
+    reference = FirebaseDatabase.instance.ref("/Power1");
+    reference?.onValue.listen((DatabaseEvent event) {
+      setState(() {
+        p1 = event.snapshot.value;
+        p11 = double.parse(p1.toString());
+        assert(p11 is double);
+      });
+    });
+    reference = FirebaseDatabase.instance.ref("/Power2");
+    reference?.onValue.listen((DatabaseEvent event) {
+      setState(() {
+        p2 = event.snapshot.value;
+        p22 = double.parse(p2.toString());
+        assert(p22 is double);
+      });
+    });
+    reference = FirebaseDatabase.instance.ref("/Power3");
+    reference?.onValue.listen((DatabaseEvent event) {
+      setState(() {
+        p3 = event.snapshot.value;
+        p33 = double.parse(p3.toString());
+        assert(p33 is double);
+      });
+    });
+    reference = FirebaseDatabase.instance.ref("/Light");
+    reference?.onValue.listen((DatabaseEvent event) {
+      setState(() {
+        li = event.snapshot.value;
+        _li = double.parse(li.toString());
+        assert(_li is double);
+      });
+    });
+    reference = FirebaseDatabase.instance.ref("/Temp");
+    reference?.onValue.listen((DatabaseEvent event) {
+      setState(() {
+        temp = event.snapshot.value;
+      });
+    });
+  }
+
+  Map<String, double> dataMap() {
+    return {
+      "Solar Panel 1": p11,
+      "Solar Panel 2": p22,
+      "Solar Panel 3": p33,
+    };
+  }
+
+  List<Color> colorList = [
+    const Color(0xffD95AF3),
+    const Color(0xff3EE094),
+    const Color(0xff3398F6),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    var un = FirebaseAuth.instance.currentUser!.displayName;
+    var em = FirebaseAuth.instance.currentUser!.email;
+
+    String? username = "";
+    if (un != null) {
+      username = un;
+    }
+    ;
+    String? email = "";
+    if (em != null) {
+      email = em;
+    }
+    ;
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.blue[900],
+          title: Center(child: Text("Panels Monitoring      ")),
+        ),
+        body: Padding(
+          padding: EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Container(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 15, 10, 10),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Fault Detector",
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.white),
+                            ),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            Text(
+                              display(p11, p22, p33, _li),
+                              style: TextStyle(
+                                  fontSize: 31,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Text(
+                              "(${display2(p11, p22, p33, _li)})",
+                              style:
+                                  TextStyle(fontSize: 13, color: Colors.white),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.yellow[900]),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Column(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(
+                                            "SP1",
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
+                                      Expanded(child: SizedBox()),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            "${p1.toString()}W",
+                                            style: TextStyle(
+                                                fontSize: 35,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),
+                                          ),
+                                          Text(
+                                            "Power  ",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10),
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                  Expanded(child: SizedBox()),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Light Intensity ",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 7.0),
+                                      ),
+                                      Text(
+                                        "${li.toString()}",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                      Expanded(child: SizedBox()),
+                                      Text(
+                                        "Tempreture ",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 7.0),
+                                      ),
+                                      Text(
+                                        "${temp.toString()}",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 10),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: displayC(p11, _li),
+                            ),
+                            height: 100,
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Container(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(
+                                            "SP3",
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
+                                      Expanded(child: SizedBox()),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            "${p3.toString()}W",
+                                            style: TextStyle(
+                                                fontSize: 35,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),
+                                          ),
+                                          Text(
+                                            "Power  ",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10),
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                  Expanded(child: SizedBox()),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Light Intensity ",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 7.0),
+                                      ),
+                                      Text(
+                                        "${li.toString()}",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 10),
+                                      ),
+                                      Expanded(child: SizedBox()),
+                                      Text(
+                                        "Tempreture ",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 7.0),
+                                      ),
+                                      Text(
+                                        "${temp.toString()}",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 10),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: displayC(p33, _li),
+                            ),
+                            height: 100,
+                          ),
+                        ],
+                      )),
+                      SizedBox(
+                        width: 20,
+                      ),
+                      Expanded(
+                          child: Column(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(
+                                            "SP2",
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
+                                      Expanded(child: SizedBox()),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            "${p2.toString()}W",
+                                            style: TextStyle(
+                                                fontSize: 35,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),
+                                          ),
+                                          Text(
+                                            "Power  ",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10),
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                  Expanded(child: SizedBox()),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Light Intensity ",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 7.0),
+                                      ),
+                                      Text(
+                                        "${li.toString()}",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 10),
+                                      ),
+                                      Expanded(child: SizedBox()),
+                                      Text(
+                                        "Tempreture ",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 7.0),
+                                      ),
+                                      Text(
+                                        "${temp.toString()}",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 10),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: displayC(p22, _li)),
+                            height: 100,
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Container(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(
+                                            "SP1\n+\nSP2\n+\nSP3",
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
+                                      Expanded(child: SizedBox()),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            "${double.parse((p11 + p22 + p33).toStringAsFixed(2))}W",
+                                            style: TextStyle(
+                                                fontSize: 30,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),
+                                          ),
+                                          Text(
+                                            "Total Power  ",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10),
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                  Expanded(child: SizedBox()),
+                                ],
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.orange[900]),
+                            height: 100,
+                          ),
+                        ],
+                      )),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Center(
+                      child: PieChart(
+                        dataMap: dataMap(),
+                        colorList: colorList,
+                        chartRadius: MediaQuery.of(context).size.width / 1.7,
+                        legendOptions: LegendOptions(
+                          legendPosition: LegendPosition.right,
+                        ),
+                        chartValuesOptions: ChartValuesOptions(
+                            showChartValuesInPercentage: true),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 2,
+                  ),
+                  Container(
+                    width: double.infinity,
+                    height: 132,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 15, 10, 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Efficiency",
+                                style: TextStyle(
+                                    fontSize: 14, color: Colors.white),
+                              ),
+                              Expanded(child: SizedBox()),
+                              Text(
+                                "${double.parse(((p11 + p22 + p33) / 30 * 100).toStringAsFixed(2))}%",
+                                style: TextStyle(
+                                    fontSize: 55,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "(Solar panels are generating ${double.parse(((p11 + p22 + p33) / 30 * 100).toStringAsFixed(2))}% of possible total output)",
+                            style: TextStyle(fontSize: 12, color: Colors.white),
+                          )
+                        ],
+                      ),
+                    ),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.yellow[900]),
+                  ),
+                ],
+              ),
+              //child: Column(),
+            ),
+          ),
+        ),
+        drawer: Drawer(
+          // Add a ListView to the drawer. This ensures the user can scroll
+          // through the options in the drawer if there isn't enough vertical
+          // space to fit everything.
+          child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Color(0xFFE65900),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Menu Bar',
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                    Expanded(child: SizedBox()),
+                    Text(
+                      username.toString(),
+                      style: TextStyle(color: Colors.white, fontSize: 17),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      email.toString(),
+                      style: TextStyle(color: Colors.white),
+                    )
+                  ],
+                ),
+              ),
+              ListTile(
+                title: const Text('Panel 1'),
+                onTap: () {
+                  Navigator.pop(context);
+                  int n = 1;
+                  openDialog(n, p11);
+
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                },
+              ),
+              ListTile(
+                title: const Text('Panel 2'),
+                onTap: () {
+
+                  Navigator.pop(context);
+                  int n = 2;
+                  openDialog(n, p22);
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                },
+              ),
+              ListTile(
+                title: const Text('Panel 3'),
+                onTap: () {
+
+                  Navigator.pop(context);
+                  int n = 3;
+                  openDialog(n, p33);
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                },
+              ),
+              ListTile(
+                title: const Text('Logout'),
+                onTap: () {
+                  AuthService().signOut();
+                  //
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  //Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ));
+  }
+
+  String display(double p11, double p22, double p33, double _li) {
+    int all = 1;
+    String sl1 = "";
+    String sl2 = "";
+    String sl3 = "";
+    if (p11 >= 4.5 && p22 >= 4.5 && p33 >= 4.5) {
+      return "Woohoo, Everything is working perfectly";
+    } else if (_li >= 85) {
+      if (p11 < 4.5) {
+        sl1 = "Panel 1, ";
+        all++;
+      }
+      if (p22 < 4.5) {
+        sl2 = "Panel 2, ";
+        all++;
+      }
+      if (p33 < 4.5) {
+        sl3 = "Panel 3, ";
+        all++;
+      }
+      if(all==4){
+        return "Oho, there is a fault in all Panels, as Sun is Shining too";
+      }else {
+        return "Oho, there is a fault in ${sl1}${sl2}${sl3}as Sun is Shining";
+      }
+    } else {
+      return "Please Sun, just come out.";
+    }
+  }
+
+  displayC(double p11, double li) {
+    if (p11 >= 4.5) {
+      return Colors.green[900];
+    } else if (_li >= 85) {
+      return Colors.red[900];
+      //return Colors.orange[900];
+    } else if (p11 < 4.5) {
+      return Colors.red[900];
+    }
+  }
+
+  Future openDialog(num, p111) {
+    double pp = (p111 / 10) * 100;
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.green[900],
+        title: Text(
+          'Solar Panel ${num}',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Container(
+          height: 350,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image(image: AssetImage("images/sp.png")),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(child: SizedBox()),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "${p111}W",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 55,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          "Power",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: 30,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "Current",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Expanded(child: SizedBox()),
+                    Text("${double.parse(((pp*0.56)/100).toStringAsFixed(2))}A",style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "Voltage",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Expanded(child: SizedBox()),
+                    Text("${double.parse(((pp*18)/100).toStringAsFixed(2))}V",style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "Light Intensity",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Expanded(child: SizedBox()),
+                    Text(
+                      "${_li}",
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "Tempreture",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Expanded(child: SizedBox()),
+                    Text(
+                      "${temp}°C",
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "Performance",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Expanded(child: SizedBox()),
+                    Text(
+                      "${double.parse(((p111 / (p11 + p22 + p33)) * 100).toStringAsFixed(2))}%",
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "Efficiency",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Expanded(child: SizedBox()),
+                    Text(
+                      "${double.parse(((p111 / 10) * 100).toStringAsFixed(2))}%",
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String display2(double p11, double p22, double p33, double _li) {
+  int all = 1;
+  String sl1 = "";
+  String sl2 = "";
+  String sl3 = "";
+  if (p11 >= 4.5 && p22 >= 4.5 && p33 >= 4.5) {
+    return "Panels are working perfectly and the Sun is shining too.";
+  } else if (_li >= 85) {
+    if (p11 < 4.5) {
+      sl1 = "Panel 1, ";
+      all++;
+    }
+    if (p22 < 4.5) {
+      sl2 = "Panel 2, ";
+      all++;
+    }
+    if (p33 < 4.5) {
+      sl3 = "Panel 3, ";
+      all++;
+    }
+    if(all==4){
+      return "All panels are not working according";
+    }else {
+      return "${sl1}${sl2}${sl3} is not working according";
+    }
+  } else {
+    return "We are getting low power due to low intensity of light";
+  }
+}
